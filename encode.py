@@ -1,41 +1,36 @@
 import argparse
-from PIL import Image
+from font import font
 
 NUM_LEDS = 7
+CHARACTER_WIDTH = 5
 BIT_POS_SKIPPED = 3
 
-def convert_bitmap(path):
-    img = Image.open(path)
-    
-    # Ensure it's greyscale
-    if img.mode != 'L':
-        img = img.convert('L')
-    
-    width, height = img.size
-    if height != NUM_LEDS:
-        raise ValueError(f"Bitmap height ({height}) must match NUM_LEDS ({NUM_LEDS})")
-    
+def convert_bitmap(content):
+
+    print(content)
+
     data = bytearray()
-    data.append(width)
+    data.append(len(content) * CHARACTER_WIDTH)
     data.append(17) # ??
-    
-    # Process each column
-    for col in reversed(range(width)):
-        byte_val = 0
-        
-        # Process each row (pixel) in the column
-        for row in range(height):
-            pixel = img.getpixel((col, row))
-            bit = 1 if pixel > 127 else 0
+
+    for char in reversed(content):
+        if char not in font:
+            raise ValueError(f"Character '{char}' not found in font mapping")
+        pixels = font[char]
+        print(pixels)
+        for x in reversed(range(CHARACTER_WIDTH)):
+            byte_val = 0
+            for y in range(NUM_LEDS):
+                bit = 1 if pixels[y][x] == '#' else 0
+                
+                # Map to correct bit position, skipping BIT_POS_SKIPPED
+                bit_pos = y if y < BIT_POS_SKIPPED else y + 1
             
-            # Map to correct bit position, skipping BIT_POS_SKIPPED
-            bit_pos = row if row < BIT_POS_SKIPPED else row + 1
-            byte_val |= (bit << bit_pos)
-        
-        data.append(byte_val)
+                byte_val |= (bit << bit_pos)
+            
+            data.append(byte_val)
     
     return data
-
 
 if __name__ == "__main__":
     
@@ -44,14 +39,12 @@ if __name__ == "__main__":
     parser.add_argument('output', help='Output file')
     
     args = parser.parse_args()
-
     num_inputs = len(args.input)
-    print(f"Writing from {num_inputs} input files to {args.output}")
 
     data = bytearray()
     data.append(num_inputs)
-    for input_file in args.input:
-        data.extend(convert_bitmap(input_file))
+    for content in args.input:
+        data.extend(convert_bitmap(content))
 
     padding_length = 128 - 3 - len(data)
     if padding_length < 0:

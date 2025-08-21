@@ -26,15 +26,11 @@ python3 decode.py dump.bin
 
 ## Generating new text
 
-Start by generating images, using e.g. [m5x7](https://github.com/boringcactus/m5x7/blob/master/src/m5x7.ttf) and imagemagick:
-
-```
-convert -size 55x7 xc:black -font m5x7.ttf -pointsize 16 -fill white -gravity center -annotate +0-1 "hello world" -threshold 50% hello-world.bmp
-```
+This uses petabyt's [7x5 Font](https://github.com/petabyt/font) (MIT licensed).
 
 Create a new image, check that it looks as you expect:
 ```
-python3 encode.py -i hello-world.bmp -i something-else.bmp test.bin
+python3 encode.py -i "hello world" -i "lorem ipsum" test.bin
 python3 decode.py test.bin
 ```
 
