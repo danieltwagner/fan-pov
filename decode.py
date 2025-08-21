@@ -3,17 +3,19 @@ BIT_POS_SKIPPED = 3
 
 def render_bitmap(data, start, length, num_bits=NUM_LEDS, bit_pos_skipped=BIT_POS_SKIPPED):
     try:
-        # Convert to binary representation (LSB first)
         binary_rows = [''] * num_bits
 
-        for byte in reversed(data[start:start+length]):
+        for i, byte in enumerate(reversed(data[start:start+length])):
             for bit_pos in range(8):
-                # Extract each bit (LSB first for typical bitmap fonts)
                 if bit_pos == bit_pos_skipped:
                     continue
                 bit = (byte >> bit_pos) & 1
                 char = '█' if bit else ' '
-                binary_rows[bit_pos if bit_pos < bit_pos_skipped else bit_pos-1] += char
+
+                padded_bit_pos = bit_pos if bit_pos < bit_pos_skipped else bit_pos-1
+                binary_rows[padded_bit_pos] += char
+                if (i+1) % 5 == 0:
+                    binary_rows[padded_bit_pos] += ' '
 
         # Print the decoded bitmap
         print("-" * len(binary_rows[0]))
@@ -28,8 +30,8 @@ def render_bitmap(data, start, length, num_bits=NUM_LEDS, bit_pos_skipped=BIT_PO
 
 def render_section(data):
     length = data[0]
-    settings = data[1]
-    print(f"Section length: {length}, settings: {settings} (7 == number of LEDs?)")
+    unknown = data[1]
+    print(f"Section length: {length}, unknown: {unknown} (7 == number of LEDs?)")
     render_bitmap(data, 2, length)
     return length + 2
 
